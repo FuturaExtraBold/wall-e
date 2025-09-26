@@ -21,26 +21,3 @@ html {
   height: 100vh;
   background: #000;
 }
-
-.app-background {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform-origin: center;
-  width: 5000px;
-  height: 5000px;
-  background-image: url("/hypnosis.png");
-  background-position: center;
-  background-size: 70%;
-  opacity: 0.025;
-  animation: rotate 4s linear infinite;
-}
-
-@keyframes rotate {
-  from {
-    transform: translate(-50%, -50%) rotate(0deg);
-  }
-  to {
-    transform: translate(-50%, -50%) rotate(360deg);
-  }
-}

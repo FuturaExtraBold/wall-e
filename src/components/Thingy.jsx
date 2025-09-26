@@ -1,4 +1,4 @@
-import { useLoader, useThree } from "@react-three/fiber";
+import { useLoader } from "@react-three/fiber";
 import { useRef, useState, useEffect } from "react";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
@@ -6,43 +6,58 @@ import * as THREE from "three";
 export default function Thingy() {
   const groupRef = useRef();
   const { scene } = useGLTF("/scene.gltf");
-  const envTexture = useLoader(THREE.TextureLoader, "/hypnosis.png");
-  const { viewport } = useThree();
+  const envTexture = useLoader(THREE.TextureLoader, "/square.png");
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
-  // Configure texture for environment mapping
   envTexture.mapping = THREE.EquirectangularReflectionMapping;
   envTexture.center.set(0.5, 0.5);
 
-  // Mouse move handler
   const handleMouseMove = (event) => {
     const x = (event.clientX / window.innerWidth) * 2 - 1;
     const y = (event.clientY / window.innerHeight) * 2 - 1;
-    console.log("Mouse moved:", x, y);
     setMouse({ x, y });
   };
 
-  // Add mouse listener
+  const handleTouchMove = (event) => {
+    if (event.touches.length > 0) {
+      const touch = event.touches[0];
+      const x = (touch.clientX / window.innerWidth) * 2 - 1;
+      const y = (touch.clientY / window.innerHeight) * 2 - 1;
+      setMouse({ x, y });
+      event.preventDefault();
+    }
+  };
+
   useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
     window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
-  // Use requestAnimationFrame instead of useFrame
   useEffect(() => {
     let animationId;
 
     const animate = () => {
       if (groupRef.current) {
-        const targetRotationY = mouse.x * 0.3;
-        const targetRotationX = mouse.y * 0.2;
+        const widthScale = Math.max(0.3, windowWidth / 2560);
+        const targetRotationY = mouse.x * 0.8 * widthScale;
+        const targetRotationX = mouse.y * 0.3 * widthScale;
 
-        // Smooth interpolation
-        groupRef.current.rotation.y +=
-          (targetRotationY - groupRef.current.rotation.y) * 0.1;
-        groupRef.current.rotation.x +=
-          (targetRotationX - groupRef.current.rotation.x) * 0.1;
+        groupRef.current.rotation.y += (targetRotationY - groupRef.current.rotation.y) * 0.1;
+        groupRef.current.rotation.x += (targetRotationX - groupRef.current.rotation.x) * 0.1;
       }
+
       animationId = requestAnimationFrame(animate);
     };
 
@@ -50,7 +65,6 @@ export default function Thingy() {
     return () => cancelAnimationFrame(animationId);
   }, [mouse]);
 
-  // Setup materials once when scene loads
   useEffect(() => {
     if (scene && envTexture) {
       scene.traverse((child) => {
@@ -60,31 +74,12 @@ export default function Thingy() {
             roughness: 0.0,
             metalness: 1,
             envMap: envTexture,
-            envMapIntensity: 0.05,
+            envMapIntensity: 0.25,
           });
         }
       });
     }
   }, [scene, envTexture]);
-
-  // useFrame((delta) => {
-  //   if (groupRef.current) {
-  //     // Smoothly rotate skull to follow mouse
-  //     const targetRotationY = mouse.x * 0.3;
-  //     const targetRotationX = mouse.y * 0.2;
-
-  //     groupRef.current.rotation.y = THREE.MathUtils.lerp(
-  //       groupRef.current.rotation.y,
-  //       targetRotationY,
-  //       delta * 3
-  //     );
-  //     groupRef.current.rotation.x = THREE.MathUtils.lerp(
-  //       groupRef.current.rotation.x,
-  //       targetRotationX,
-  //       delta * 3
-  //     );
-  //   }
-  // });
 
   return (
     <group ref={groupRef} position={[0, 0, 0]}>
