@@ -27,12 +27,13 @@ html {
   top: 50%;
   left: 50%;
   transform-origin: center;
-  width: 2000px;
-  height: 2000px;
+  width: 5000px;
+  height: 5000px;
   background-image: url("/hypnosis.png");
   background-position: center;
-  opacity: 0.05;
-  animation: rotate 2s linear infinite;
+  background-size: 70%;
+  opacity: 0.025;
+  animation: rotate 4s linear infinite;
 }
 
 @keyframes rotate {
