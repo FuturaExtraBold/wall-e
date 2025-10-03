@@ -2,7 +2,7 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 
 import "./App.css";
-import Thingy from "./components/Thingy";
+import WallE from "./components/WallE";
 
 function App() {
   return (
@@ -10,7 +10,7 @@ function App() {
       <Canvas camera={{ position: [0, 1.5, 0], fov: 30 }}>
         <ambientLight intensity={1} />
         <pointLight position={[10, 10, 10]} />
-        <Thingy />
+        <WallE />
       </Canvas>
       {/* <div className="overlay">
         <h1>Skully Boi</h1>
