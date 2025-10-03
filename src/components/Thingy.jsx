@@ -1,17 +1,22 @@
 import { useLoader } from "@react-three/fiber";
 import { useRef, useState, useEffect } from "react";
-import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
+import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
+import { MTLLoader } from "three/examples/jsm/loaders/MTLLoader";
 
 export default function Thingy() {
   const groupRef = useRef();
-  const { scene } = useGLTF("/scene.gltf");
+  const materials = useLoader(MTLLoader, "/walle.mtl");
+  const obj = useLoader(OBJLoader, "/walle.obj", (loader) => {
+    materials.preload();
+    loader.setMaterials(materials);
+  });
   const envTexture = useLoader(THREE.TextureLoader, "/square.png");
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   envTexture.mapping = THREE.EquirectangularReflectionMapping;
-  envTexture.center.set(0.5, 0.5);
+  envTexture.center.set(0.5, 1);
 
   const handleMouseMove = (event) => {
     const x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -52,10 +57,12 @@ export default function Thingy() {
       if (groupRef.current) {
         const widthScale = Math.max(0.3, windowWidth / 2560);
         const targetRotationY = mouse.x * 0.8 * widthScale;
-        const targetRotationX = mouse.y * 0.3 * widthScale;
+        const targetRotationX = -Math.PI / 2 + mouse.y * 0.3 * widthScale;
 
-        groupRef.current.rotation.y += (targetRotationY - groupRef.current.rotation.y) * 0.1;
-        groupRef.current.rotation.x += (targetRotationX - groupRef.current.rotation.x) * 0.1;
+        groupRef.current.rotation.y +=
+          (targetRotationY - groupRef.current.rotation.y) * 0.1;
+        groupRef.current.rotation.x +=
+          (targetRotationX - groupRef.current.rotation.x) * 0.1;
       }
 
       animationId = requestAnimationFrame(animate);
@@ -66,8 +73,8 @@ export default function Thingy() {
   }, [mouse]);
 
   useEffect(() => {
-    if (scene && envTexture) {
-      scene.traverse((child) => {
+    if (obj && envTexture) {
+      obj.traverse((child) => {
         if (child.isMesh) {
           child.material = new THREE.MeshStandardMaterial({
             color: "#000000",
@@ -79,11 +86,15 @@ export default function Thingy() {
         }
       });
     }
-  }, [scene, envTexture]);
+  }, [obj, envTexture]);
 
   return (
-    <group ref={groupRef} position={[0, 0, 0]}>
-      <primitive object={scene} />
+    <group
+      ref={groupRef}
+      position={[0, 0, 0.75]}
+      rotation={[-Math.PI / 2, 0, 0]}
+    >
+      <primitive object={obj} />
     </group>
   );
 }
